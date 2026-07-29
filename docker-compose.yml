@@ -1,0 +1,33 @@
+﻿services:
+  api:
+    build:
+      context: .
+      dockerfile: src/AutoFinderAI.Api/Dockerfile
+    container_name: autofinderai-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: "Data Source=/data/autofinder.db"
+      Jwt__Key: ${Jwt__Key:?Set Jwt__Key in .env (see .env.example) - min 32 chars}
+      Jwt__Issuer: ${Jwt__Issuer:-AutoFinderAI}
+      Jwt__ExpiryMinutes: ${Jwt__ExpiryMinutes:-60}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY in .env (see .env.example)}
+      Cors__AllowedOrigins__0: http://localhost:4200
+    volumes:
+      - autofinderai-data:/data
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: autofinderai-frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "4200:80"
+
+volumes:
+  autofinderai-data:

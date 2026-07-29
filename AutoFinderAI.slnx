@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AutoFinderAI.Api/AutoFinderAI.Api.csproj" />
+    <Project Path="src/AutoFinderAI.Application/AutoFinderAI.Application.csproj" />
+    <Project Path="src/AutoFinderAI.Domain/AutoFinderAI.Domain.csproj" />
+    <Project Path="src/AutoFinderAI.Infrastructure/AutoFinderAI.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AutoFinderAI.IntegrationTests/AutoFinderAI.IntegrationTests.csproj" />
+    <Project Path="tests/AutoFinderAI.UnitTests/AutoFinderAI.UnitTests.csproj" />
+  </Folder>
+</Solution>

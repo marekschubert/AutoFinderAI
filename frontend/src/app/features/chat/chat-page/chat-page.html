@@ -1,0 +1,153 @@
+<mat-sidenav-container class="chat-container">
+  <mat-sidenav
+    class="sidebar"
+    [mode]="sidenavMode()"
+    [opened]="sidebarOpen()"
+    (closedStart)="sidebarOpen.set(false)"
+  >
+    <div class="sidebar-header">
+      <button mat-flat-button color="primary" (click)="newChat()">
+        <mat-icon>add</mat-icon>
+        Nowy czat
+      </button>
+    </div>
+
+    @if (chatStore.sessionsLoading()) {
+      <div class="sidebar-loading"><mat-spinner diameter="28"></mat-spinner></div>
+    } @else if (chatStore.sessions().length === 0) {
+      <p class="sidebar-empty">Brak sesji. Rozpocznij nowy czat.</p>
+    } @else {
+      <mat-nav-list>
+        @for (session of chatStore.sessions(); track session.id) {
+          <a
+            mat-list-item
+            class="session-item"
+            [class.active]="session.id === chatStore.activeSessionId()"
+            (click)="selectSession(session.id)"
+          >
+            <div class="session-info">
+              <span class="session-title">{{ session.title }}</span>
+              <span class="session-time">{{ session.lastMessageAt | relativeTime }}</span>
+            </div>
+            <button
+              mat-icon-button
+              matTooltip="Usuń sesję"
+              aria-label="Usuń sesję"
+              (click)="deleteSession(session.id, $event)"
+            >
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </a>
+        }
+      </mat-nav-list>
+    }
+  </mat-sidenav>
+
+  <mat-sidenav-content class="content">
+    <header class="chat-header">
+      <button mat-icon-button (click)="toggleSidebar()" aria-label="Przełącz panel sesji">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <h1 class="app-title">AutoFinderAI</h1>
+
+      @if (!aiAvailable()) {
+        <span class="ai-banner">Tryb ograniczony: AI niedostępne</span>
+      }
+
+      <mat-form-field appearance="outline" class="model-picker" subscriptSizing="dynamic">
+        <mat-label>Model</mat-label>
+        <mat-select
+          [value]="selectedModel()"
+          (selectionChange)="selectedModel.set($event.value)"
+          [disabled]="!aiAvailable() || models().length === 0"
+        >
+          @for (model of models(); track model) {
+            <mat-option [value]="model">{{ model }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <button
+        mat-stroked-button
+        matTooltip="Uruchom crawlowanie ogłoszeń"
+        [disabled]="crawling()"
+        (click)="triggerCrawl()"
+      >
+        @if (crawling()) {
+          <mat-spinner diameter="18"></mat-spinner>
+        } @else {
+          <mat-icon>sync</mat-icon>
+        }
+        Crawl
+      </button>
+
+      <span class="user-email">{{ authStore.email() }}</span>
+      <button mat-icon-button matTooltip="Wyloguj" aria-label="Wyloguj" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </header>
+
+    <main class="conversation">
+      @if (chatStore.sessionLoading()) {
+        <div class="conversation-loading"><mat-spinner diameter="32"></mat-spinner></div>
+      } @else if (isEmpty()) {
+        <div class="empty-state">
+          <p>Opisz, jakiego samochodu szukasz, a zaproponuję dopasowane oferty.</p>
+          <div class="example-prompts">
+            @for (prompt of examplePrompts; track prompt) {
+              <button mat-stroked-button (click)="useExample(prompt)">{{ prompt }}</button>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="message-list">
+          @for (message of chatStore.messages(); track message.id) {
+            <div class="message" [class.user]="message.role === 'User'" [class.assistant]="message.role === 'Assistant'">
+              <div class="bubble">
+                @if (message.role === 'Assistant') {
+                  <markdown [data]="message.content"></markdown>
+                  @if (resultsFor(message); as results) {
+                    <app-vehicle-results [vehicles]="results"></app-vehicle-results>
+                  }
+                } @else {
+                  <p>{{ message.content }}</p>
+                }
+              </div>
+            </div>
+          }
+
+          @if (chatStore.sending()) {
+            <div class="message assistant">
+              <div class="bubble thinking">
+                <mat-spinner diameter="18"></mat-spinner>
+                <span>Analizuję zapytanie…</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      <div #messagesEnd></div>
+    </main>
+
+    <footer class="composer">
+      <textarea
+        [ngModel]="draft()"
+        (ngModelChange)="draft.set($event)"
+        (keydown)="onComposerKeydown($event)"
+        [disabled]="chatStore.sending()"
+        placeholder="Opisz, jakiego samochodu szukasz… (Enter aby wysłać, Shift+Enter nowa linia)"
+        rows="2"
+        aria-label="Treść wiadomości"
+      ></textarea>
+      <button
+        mat-icon-button
+        color="primary"
+        [disabled]="chatStore.sending() || !draft().trim()"
+        (click)="send()"
+        aria-label="Wyślij wiadomość"
+      >
+        <mat-icon>send</mat-icon>
+      </button>
+    </footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>

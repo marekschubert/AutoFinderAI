@@ -303,6 +303,14 @@ __pycache__/
 ### dotenv ###
 .env
 
+### AutoFinderAI ###
+# SQLite database + WAL/SHM side files (local dataset, never committed)
+*.db
+*.db-shm
+*.db-wal
+Serilog/
+/logs/
+
 ### DotnetCore ###
 # .NET Core build folders
 bin/

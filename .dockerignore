@@ -1,0 +1,16 @@
+﻿bin/
+obj/
+**/bin/
+**/obj/
+node_modules/
+frontend/dist/
+frontend/.angular/
+.git/
+.vs/
+.vscode/
+*.db
+*.db-shm
+*.db-wal
+logs/
+Serilog/
+.env
